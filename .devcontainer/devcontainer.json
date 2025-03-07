@@ -1,0 +1,73 @@
+{
+    "name": "python_template_repo",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": {
+            "VARIANT": "3.11",
+            "GIT_USER_NAME": "${localEnv:GIT_USER_NAME}",
+            "GIT_USER_EMAIL": "${localEnv:GIT_USER_EMAIL}",
+        }
+    },
+    "runArgs": [
+        "--rm",
+        "--name=python_template_repo_devcontainer"
+    ],
+
+    "remoteUser": "vscode",
+    "containerEnv": {
+        "MY_ENV_VAR": "${localEnv:MY_ENV_VAR}",
+        "HOME": "/home/vscode",
+        "GIT_USER_NAME": "${localEnv:GIT_USER_NAME}",
+        "GIT_USER_EMAIL": "${localEnv:GIT_USER_EMAIL}",
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "python.defaultInterpreterPath": "/opt/uv/python_template_repo/bin/python3",
+                "editor.formatOnSave": true,
+                "[python]": {
+                    "editor.defaultFormatter": "charliermarsh.ruff",
+                    "editor.codeActionsOnSave": {
+                    "source.fixAll": true,
+                    "source.organizeImports": true
+                    }
+                },
+                "[yaml]": {
+                    "editor.defaultFormatter": "redhat.vscode-yaml",
+                    "editor.formatOnSave": true,
+                },
+                "[markdown]": {
+                    "editor.defaultFormatter": "yzhang.markdown-all-in-one",
+                    "editor.formatOnSave": true,
+                },
+                "[json]": {
+                    "editor.defaultFormatter": "esbenp.prettier-vscode",
+                    "editor.formatOnSave": true
+                },
+                "[toml]": {
+                    "editor.defaultFormatter": "tamasfe.even-better-toml"
+                },
+                "[shellscript][ignore][hosts]": {
+                    "editor.defaultFormatter": "foxundermoon.shell-format",
+                    "editor.formatOnSave": true
+                },
+                "eslint.format.enable": true
+            },
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "emeraldwalk.runonsave",
+                "dbaeumer.vscode-eslint",
+                "charliermarsh.ruff",
+                "tamasfe.even-better-toml",
+                "ms-toolsai.jupyter",
+                "redhat.vscode-yaml",
+                "yzhang.markdown-all-in-one",
+                "esbenp.prettier-vscode",
+                "foxundermoon.shell-format"
+            ]
+        }
+    },
+    "postCreateCommand": "bash .devcontainer/setup_git.sh && git config --global core.editor \"code --wait --new-window\"",
+    "shutdownAction": "stopContainer"
+}
