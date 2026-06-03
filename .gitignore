@@ -47,5 +47,9 @@ venv/
 .env.*
 !.env.example
 
+# Dev container per-project git identity + SSH credentials (never commit these)
+.devcontainer/devcontainer.env
+.devcontainer/ssh/
+
 # uv cache
 .uv/

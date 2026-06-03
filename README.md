@@ -14,9 +14,9 @@ Make sure you have installed:
 
 ### Environment Variables
 
-Set the following environment variables on your system before proceeding:
+This is the **default identity** the dev container uses for *your own* projects. Export
+your git name and email on the host and the container picks them up automatically:
 
-If the git username and email you need to use is different from one on the global settings, use:
 **Linux / macOS:**
 
 ```bash
@@ -24,7 +24,7 @@ export GIT_USER_NAME="Your Git Username"
 export GIT_USER_EMAIL="Your Git Email"
 ```
 
-Optionally, you can add them to your `~/.bashrc`, `~/.zshrc`, or similar:
+Optionally, add them to your `~/.bashrc`, `~/.zshrc`, or similar:
 
 ```bash
 echo 'export GIT_USER_NAME="Your Git Username"' >> ~/.bashrc
@@ -38,6 +38,10 @@ Alternatively, derive them from your existing global git config:
 export GIT_USER_NAME=$(git config --get user.name)
 export GIT_USER_EMAIL=$(git config --get user.email)
 ```
+
+> For **client work** where the container must commit and push as *someone other than
+> your host identity*, do not use these host variables — use the per-project setup in
+> [Per-Project Git Identity & Credentials](#per-project-git-identity--credentials) instead.
 
 ---
 
@@ -68,18 +72,80 @@ cd your-new-repo
 
 ---
 
+## Per-Project Git Identity & Credentials
+
+Treat the dev container as an **isolation boundary** — a per-project `.env` for git, not
+just Python. This is for **client work**, where commits must be attributed to (and pushed
+with) the *client's* identity rather than your personal one.
+
+### How it works
+
+A single git-ignored file decides everything:
+
+| State | Behavior |
+| --- | --- |
+| `.devcontainer/devcontainer.env` **present** | Client project: that identity (and any credentials) are applied **inside the container**. |
+| **absent** | Your own project: falls back to the host `GIT_USER_*` variables above. Zero setup. |
+
+Identity and credentials are written to the **container's** `~/.gitconfig` / `~/.ssh` only,
+so committing from the host in the same folder still uses your personal identity. Nothing
+about a client ever lands in version control — `.devcontainer/devcontainer.env` and
+`.devcontainer/ssh/` are git-ignored, and a pre-commit hook blocks committing them even if
+force-added.
+
+### Recommended: SSH (deploy keys)
+
+Run once per clone, then reopen/rebuild the container:
+
+```bash
+./scripts/setup-identity.sh
+```
+
+The script prompts for the client name/email and can **generate a per-project SSH key**,
+printing the public key for you to register on the client's repo
+(**Settings → Deploy keys → Add deploy key**, with write access). If the client gave you a
+key instead, drop the private key into `.devcontainer/ssh/` and skip generation.
+
+On container create, `.devcontainer/setup_git.sh` installs the key into the container's
+`~/.ssh`, trusts the host, and rewrites an `https://github.com/...` `origin` to its SSH form
+so `git push` "just works".
+
+### Alternative: HTTPS + Personal Access Token (PAT)
+
+If a client prefers tokens over SSH, skip the SSH key and instead edit
+`.devcontainer/devcontainer.env` (copy it from `devcontainer.env.example`):
+
+```bash
+GIT_USER_NAME="Client Dev"
+GIT_USER_EMAIL="dev@client.example"
+GIT_CREDENTIAL_HOST="github.com"
+GIT_CREDENTIAL_USERNAME="client-bot"     # any non-empty value works for a PAT
+GIT_CREDENTIAL_TOKEN="ghp_xxxxxxxxxxxx"  # the client's PAT (e.g. a fine-grained token)
+```
+
+On create, `setup_git.sh` configures git's credential store inside the container
+(`~/.git-credentials`, `chmod 600`) so HTTPS pushes authenticate as that token. Keep the
+remote on its `https://` URL in this mode. The token is plaintext in a git-ignored file —
+prefer a **fine-grained, repo-scoped, expiring** PAT, and revoke it when the engagement ends.
+
+---
+
 ## Project Structure
 
 ```text
 .
 ├── .devcontainer
 │   ├── Dockerfile
+│   ├── devcontainer.env.example  # Template for per-project identity/credentials
 │   ├── devcontainer.json
-│   └── setup_git.sh
+│   └── setup_git.sh              # Applies identity + SSH/PAT creds in the container
 ├── .github
 │   └── workflows
 │       ├── ci.yml              # Lint + type-check + tests on push/PR
 │       └── initial_setup.yml   # One-time template renaming (self-deletes)
+├── scripts
+│   ├── check-no-secrets.sh       # pre-commit guard: blocks committing creds
+│   └── setup-identity.sh         # One-time per-project identity + SSH key setup
 ├── tests
 │   └── test_main.py
 ├── .env.example

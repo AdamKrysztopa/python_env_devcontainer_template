@@ -26,6 +26,11 @@ repos:
         language: system
         types_or: [python, pyi]
         pass_filenames: false
+      - id: block-devcontainer-secrets
+        name: block committing dev container secrets
+        entry: scripts/check-no-secrets.sh
+        language: system
+        files: '^\.devcontainer/(devcontainer\.env$|ssh/)'
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
