@@ -175,6 +175,22 @@ both `pyproject.toml` and `uv.lock`. Don't edit `uv.lock` by hand.
 
 The template ships with **no runtime dependencies** — add only what your project needs.
 
+### Tool & dependency versioning
+
+The strategy is deliberately **split** — know which parts float and which are locked:
+
+| Thing | Pinned? | Where | How to update |
+| --- | --- | --- | --- |
+| **uv** (the tool) | ❌ latest at image build | `.devcontainer/Dockerfile` (`astral.sh/uv/install.sh`) | Rebuild the container; pin by switching to a versioned installer URL (`…/uv/<version>/install.sh`) |
+| **ruff / pyright / pytest / pre-commit** | ✅ exact via lockfile | `>=` floors in `pyproject.toml`, exact versions in `uv.lock` | `uv lock --upgrade` (or `uv add --dev ruff@latest`), then commit `uv.lock` |
+| **pre-commit hygiene hooks** | ✅ by `rev:` | `.pre-commit-config.yaml` | `uv run pre-commit autoupdate` |
+| **Python** | ✅ `3.11` | `.python-version`, Dockerfile `VARIANT` | Bump both, re-sync |
+
+The locked dev-tool set is what everyone actually runs: CI uses `uv sync --extra dev --locked`,
+and the pre-commit hooks call the tools via `uv run` — so **local, CI, and commit-time all use
+the identical versions** from `uv.lock`, no drift. Only uv itself can move underneath you on a
+container rebuild; pin it as above if you need byte-reproducible images.
+
 ---
 
 ## Common Commands

@@ -6,8 +6,12 @@ NEW_REPO_NAME=$(basename "$PWD")
 
 echo "Renaming 'python_template_repo' to '$NEW_REPO_NAME' in all files..."
 
-# Find and process all files except this script itself
-find . -type f ! -name "$(basename "$0")" -print0 | while IFS= read -r -d '' file; do
+# Find and process all files except this script itself. Prune directories that
+# can't contain (or shouldn't be touched by) the placeholder: .git holds binary
+# pack files, .venv is environment-specific, __pycache__ is generated.
+find . \
+    -type d \( -name .git -o -name .venv -o -name __pycache__ \) -prune -o \
+    -type f ! -name "$(basename "$0")" -print0 | while IFS= read -r -d '' file; do
     if grep -q "python_template_repo" "$file"; then
         # Use the appropriate sed option depending on OS
         if [[ "$OSTYPE" == "darwin"* ]]; then

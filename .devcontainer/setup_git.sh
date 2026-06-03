@@ -18,9 +18,16 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="$SCRIPT_DIR/devcontainer.env"
 SSH_SRC_DIR="$SCRIPT_DIR/ssh"
 
-# 1. Load the per-project file if present (its values win over host env).
+# 1. Decide the mode. If a per-project file exists, this is "project/client
+#    mode": the file is authoritative. We unset any host-injected identity
+#    BEFORE sourcing so that a file which omits (or blanks) GIT_USER_* can never
+#    silently fall back to the host user — better to warn and refuse than to
+#    mis-attribute a client commit to you.
+PROJECT_ENV=0
 if [ -f "$ENV_FILE" ]; then
+    PROJECT_ENV=1
     echo "Loading project git config from $ENV_FILE"
+    unset GIT_USER_NAME GIT_USER_EMAIL GIT_CREDENTIAL_USERNAME GIT_CREDENTIAL_TOKEN
     set -a
     # shellcheck disable=SC1090
     source "$ENV_FILE"
@@ -34,6 +41,13 @@ if [ -n "${GIT_USER_NAME:-}" ] && [ -n "${GIT_USER_EMAIL:-}" ]; then
     git config --global user.name "$GIT_USER_NAME"
     git config --global user.email "$GIT_USER_EMAIL"
     echo "Git identity set: $GIT_USER_NAME <$GIT_USER_EMAIL>"
+elif [ "$PROJECT_ENV" = 1 ]; then
+    # Present-but-incomplete file: do NOT fall back to the host identity.
+    echo "ERROR: $ENV_FILE is present but GIT_USER_NAME/GIT_USER_EMAIL are empty." >&2
+    echo "  This is client/project mode; refusing to fall back to your host" >&2
+    echo "  identity to avoid mis-attributing commits. Fill them in, or run" >&2
+    echo "  ./scripts/setup-identity.sh. (git is left without an identity, so a" >&2
+    echo "  commit will fail loudly rather than commit as the wrong person.)" >&2
 else
     echo "WARNING: git identity not configured."
     echo "  Run ./scripts/setup-identity.sh for this project,"

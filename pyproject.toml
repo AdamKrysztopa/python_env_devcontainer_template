@@ -7,6 +7,10 @@ requires-python = ">=3.11"
 dependencies = []
 
 [project.optional-dependencies]
+# Dev tools are floor-pinned (>=) here, but the EXACT versions are locked in
+# uv.lock and that locked set is what everyone gets: CI runs `uv sync --locked`
+# and pre-commit invokes them via `uv run`. To move to the latest releases, run
+# `uv lock --upgrade` (or `uv add --dev ruff@latest`) and commit the new uv.lock.
 dev = ["ruff>=0.8", "pyright>=1.1.390", "pytest>=8.0", "pre-commit>=3.7"]
 
 [tool.uv]
