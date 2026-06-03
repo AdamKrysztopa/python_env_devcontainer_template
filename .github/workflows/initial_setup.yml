@@ -20,13 +20,13 @@ jobs:
         id: repo_name
         run: echo "REPO_NAME=${{ github.event.repository.name }}" >> $GITHUB_ENV
 
-      - name: Check if repo is different from template_repo
-        if: env.REPO_NAME != 'template_repo'
+      - name: Check if repo is different from python_env_devcontainer_template
+        if: env.REPO_NAME != 'python_env_devcontainer_template'
         run: echo "Proceeding with renaming..."
 
       - name: Verify renaming script exists
         id: check_script
-        if: env.REPO_NAME != 'template_repo'
+        if: env.REPO_NAME != 'python_env_devcontainer_template'
         run: |
           if [ ! -f run_me_first.sh ]; then
             echo "No renaming needed"
@@ -34,11 +34,11 @@ jobs:
           fi
 
       - name: Run renaming script
-        if: env.REPO_NAME != 'template_repo'
+        if: env.REPO_NAME != 'python_env_devcontainer_template'
         run: bash ./run_me_first.sh
 
       - name: Commit changes
-        if: env.REPO_NAME != 'template_repo'
+        if: env.REPO_NAME != 'python_env_devcontainer_template'
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -47,7 +47,7 @@ jobs:
           git push origin main
 
       - name: Remove initial setup workflow
-        if: env.REPO_NAME != 'template_repo'
+        if: env.REPO_NAME != 'python_env_devcontainer_template'
         run: |
           rm -f .github/workflows/initial_setup.yml
           git add .github/workflows/initial_setup.yml
