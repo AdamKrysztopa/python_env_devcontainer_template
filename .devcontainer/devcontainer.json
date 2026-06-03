@@ -70,6 +70,6 @@
             ]
         }
     },
-    "postCreateCommand": "bash .devcontainer/setup_git.sh && git config --global core.editor \"code --wait --new-window\"",
+    "postCreateCommand": "uv sync --extra dev && uv run pre-commit install; bash .devcontainer/setup_git.sh && git config --global core.editor \"code --wait --new-window\"",
     "shutdownAction": "stopContainer"
 }

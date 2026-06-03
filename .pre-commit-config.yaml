@@ -1,0 +1,37 @@
+# Run with: uv run pre-commit install   (then hooks run on every commit)
+# Manual full run: uv run pre-commit run --all-files
+#
+# ruff and pyright run via `uv run`, so their versions come from uv.lock — the
+# exact versions CI uses — and pyright sees the project's dependencies in .venv.
+# This avoids pre-commit's separately-pinned, isolated environments drifting
+# from CI.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+      - id: pyright
+        name: pyright
+        entry: uv run pyright
+        language: system
+        types_or: [python, pyi]
+        pass_filenames: false
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict

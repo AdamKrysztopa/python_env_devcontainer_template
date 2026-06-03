@@ -1,6 +1,18 @@
+"""Entry point module for the template application."""
+
+
+def greeting() -> str:
+    """Return the application's greeting message.
+
+    Returns:
+        The greeting string shown on startup.
+    """
+    return 'Hello from python_template_repo!'
+
+
 def main() -> None:
-    """Hello world."""
-    print('Hello from python_template_repo!')
+    """Print the greeting message."""
+    print(greeting())
 
 
 if __name__ == '__main__':

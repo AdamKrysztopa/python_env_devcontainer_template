@@ -1,5 +1,5 @@
 # Byte-compiled / optimized / DLL files
-*.__pycache__/
+__pycache__/
 *.py[cod]
 *$py.class
 
@@ -37,6 +37,15 @@ coverage.xml
 
 # Logs
 *.log
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment variables
+.env
+.env.*
+!.env.example
 
 # uv cache
 .uv/

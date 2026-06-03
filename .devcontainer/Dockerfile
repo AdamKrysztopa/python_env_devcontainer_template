@@ -2,11 +2,11 @@
 ARG VARIANT="3.11"
 FROM python:${VARIANT}
 
-# Install uv and necessary tools
-RUN apt-get update && apt-get install -y curl ca-certificates \
+# Install uv (project/dev tools come from the uv-managed .venv, not system pip)
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
     && curl -LsSf https://astral.sh/uv/install.sh | sh \
     && cp /root/.local/bin/uv /usr/local/bin/uv \
-    && pip install pyright ruff uvicorn
+    && rm -rf /var/lib/apt/lists/*
 
 # Create vscode user
 ARG USERNAME=vscode

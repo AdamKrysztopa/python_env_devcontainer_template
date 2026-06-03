@@ -59,7 +59,7 @@ cd your-new-repo
 3. **Open in VS Code with Dev Containers**:
    - Ensure Docker is running.
    - Open VS Code, use `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac), and select `Remote-Containers: Reopen in Container`.
-   
+
    - *If the GitHub Action did not run successfully, please execute the `run_me_first.sh` script and remove the `.github/workflows/initial_setup.yml` file. This issue may arise depending on your github configuration.*
 
 4. **Initial Setup (Automatic)**:
@@ -76,18 +76,50 @@ cd your-new-repo
 │   ├── Dockerfile
 │   ├── devcontainer.json
 │   └── setup_git.sh
+├── .github
+│   └── workflows
+│       ├── ci.yml              # Lint + type-check + tests on push/PR
+│       └── initial_setup.yml   # One-time template renaming (self-deletes)
+├── tests
+│   └── test_main.py
+├── .pre-commit-config.yaml
 ├── main.py
-└── pyproject.toml
+├── pyproject.toml
+└── uv.lock
 ```
 
 ---
 
-## Testing the Setup
+## Dependency Management
 
-Run the provided Python script to confirm everything is set up correctly:
+This project uses [uv](https://docs.astral.sh/uv/). Install everything (including dev tools) with:
 
 ```bash
-python main.py
+uv sync --extra dev
+```
+
+Add or remove dependencies with `uv add <pkg>` / `uv add --dev <pkg>` — this updates
+both `pyproject.toml` and `uv.lock`. Don't edit `uv.lock` by hand.
+
+The template ships with **no runtime dependencies** — add only what your project needs.
+
+---
+
+## Common Commands
+
+```bash
+uv run python main.py              # Run the entry point
+uv run ruff check .                # Lint (autofixes enabled)
+uv run ruff format .               # Format
+uv run pyright                     # Type-check
+uv run pytest                      # Run tests
+uv run pre-commit run --all-files  # Run all pre-commit hooks manually
+```
+
+### Testing the Setup
+
+```bash
+uv run python main.py
 ```
 
 Expected output:
@@ -96,7 +128,7 @@ Expected output:
 Hello from your-new-repo!
 ```
 
-If you see the above message, your setup is successful.
+If you see the above message, your setup is successful. You can also run `uv run pytest`.
 
 ---
 
@@ -106,20 +138,26 @@ If you see the above message, your setup is successful.
 
 - Python `3.11`
 
-### Default Python Packages
+### Development Dependencies
 
-Included libraries:
+- ruff — linting & formatting
+- pyright — type checking
+- pytest — testing
+- pre-commit — git hooks (installed automatically in the dev container)
 
-- numpy
-- pandas
-- plotly
-- uvicorn
-- ipykernel
+### Continuous Integration
 
-Development dependencies:
+`.github/workflows/ci.yml` runs ruff (lint + format check), pyright, and pytest on every
+push to `main` and on every pull request.
 
-- ruff
-- pyright
+### Pre-commit Hooks
+
+Hooks are installed automatically by the dev container's `postCreateCommand`. To enable them
+manually outside the container:
+
+```bash
+uv run pre-commit install
+```
 
 ### VS Code Extensions Installed by Default
 
@@ -161,4 +199,3 @@ Modify `pyproject.toml` and other configuration files to add dependencies and ad
 Feel free to suggest improvements or open issues in the original repository.
 
 Happy Coding! 🚀
-
