@@ -32,7 +32,7 @@ echo 'export GIT_USER_EMAIL="Your Git Email"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-elsewere, all exports can be replaced with:
+Alternatively, derive them from your existing global git config:
 
 ```bash
 export GIT_USER_NAME=$(git config --get user.name)
@@ -46,9 +46,9 @@ export GIT_USER_EMAIL=$(git config --get user.email)
 ### Step-by-step Guide
 
 1. **Create Repository from Template**:
-   - Go to the [template repository](https://github.com/AdamKrysztopa/template_repo).
+   - Go to the [template repository](https://github.com/AdamKrysztopa/python_env_devcontainer_template).
    - Click the "Use this template" button and create your own repository.
-   - Now you can check if github action went correct, if not need to do the step in after repo clonning.
+   - Check that the **Initial Template Setup** GitHub Action ran successfully. If it did not, run the manual fallback in the step below after cloning.
 
 2. **Clone Your New Repository**:
 
@@ -63,7 +63,7 @@ cd your-new-repo
    - *If the GitHub Action did not run successfully, please execute the `run_me_first.sh` script and remove the `.github/workflows/initial_setup.yml` file. This issue may arise depending on your github configuration.*
 
 4. **Initial Setup (Automatic)**:
-   - On creating your first branch, GitHub Actions will automatically run a renaming script to customize your repository.
+   - On your first push to `main`, GitHub Actions runs a renaming script that customizes your repository (replacing the `python_template_repo` placeholder), then removes itself.
    - No manual interaction is needed at this stage.
 
 ---
@@ -82,9 +82,15 @@ cd your-new-repo
 │       └── initial_setup.yml   # One-time template renaming (self-deletes)
 ├── tests
 │   └── test_main.py
+├── .env.example
+├── .gitignore
 ├── .pre-commit-config.yaml
+├── .python-version
+├── LICENSE
+├── README.md
 ├── main.py
 ├── pyproject.toml
+├── run_me_first.sh             # Renames placeholder; removed after first setup
 └── uv.lock
 ```
 

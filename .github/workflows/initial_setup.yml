@@ -5,51 +5,34 @@ on:
     branches: [main]
 
 permissions:
-  contents: write # Grant write access to push changes
+  contents: write # Grant write access to push the renamed files back
 
 jobs:
   run-setup:
+    # Single source of truth for the self-identity guard: skip on the template
+    # repo itself, run only in repos created from it. If the template is ever
+    # renamed on GitHub, update THIS ONE line.
+    if: github.event.repository.name != 'python_env_devcontainer_template'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }} # Ensure correct permissions
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get repository name
-        id: repo_name
-        run: echo "REPO_NAME=${{ github.event.repository.name }}" >> $GITHUB_ENV
-
-      - name: Check if repo is different from python_env_devcontainer_template
-        if: env.REPO_NAME != 'python_env_devcontainer_template'
-        run: echo "Proceeding with renaming..."
-
-      - name: Verify renaming script exists
-        id: check_script
-        if: env.REPO_NAME != 'python_env_devcontainer_template'
+      - name: Initialize template
         run: |
           if [ ! -f run_me_first.sh ]; then
-            echo "No renaming needed"
-            exit 78
+            echo "Template already initialized; nothing to do."
+            exit 0
           fi
+          bash ./run_me_first.sh           # renames placeholder, deletes itself
+          rm -f .github/workflows/initial_setup.yml
 
-      - name: Run renaming script
-        if: env.REPO_NAME != 'python_env_devcontainer_template'
-        run: bash ./run_me_first.sh
-
-      - name: Commit changes
-        if: env.REPO_NAME != 'python_env_devcontainer_template'
+      - name: Commit and push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "Run template renaming" || echo "Nothing to commit"
-          git push origin main
-
-      - name: Remove initial setup workflow
-        if: env.REPO_NAME != 'python_env_devcontainer_template'
-        run: |
-          rm -f .github/workflows/initial_setup.yml
-          git add .github/workflows/initial_setup.yml
-          git commit -m "Remove initial setup workflow" || echo "Nothing to commit"
+          git add -A
+          git commit -m "Initialize repository from template" || echo "Nothing to commit"
           git push origin main

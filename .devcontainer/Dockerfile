@@ -2,7 +2,9 @@
 ARG VARIANT="3.11"
 FROM python:${VARIANT}
 
-# Install uv (project/dev tools come from the uv-managed .venv, not system pip)
+# Install uv. The project's .venv is created in the workspace folder by the
+# devcontainer postCreateCommand (`uv sync`), not here — VS Code bind-mounts the
+# repo to /workspaces/<repo>, so a venv baked into the image would be orphaned.
 RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
     && curl -LsSf https://astral.sh/uv/install.sh | sh \
     && cp /root/.local/bin/uv /usr/local/bin/uv \
@@ -18,15 +20,5 @@ RUN groupadd --gid $USER_GID $USERNAME \
 # Set default shell
 SHELL ["/bin/bash", "-c"]
 
-# Ensure workspace directory exists and is owned by vscode user
-RUN mkdir -p /workspace && chown -R $USERNAME:$USERNAME /workspace
-WORKDIR /workspace
-
 # Switch to vscode user
 USER $USERNAME
-
-# Create virtual environment at workspace folder
-RUN uv venv .venv
-
-# Update PATH
-ENV PATH="/workspace/.venv/bin:$PATH"

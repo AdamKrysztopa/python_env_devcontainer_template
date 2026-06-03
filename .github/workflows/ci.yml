@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+# Cancel superseded runs on the same ref to save CI minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   checks:
     runs-on: ubuntu-latest
@@ -16,12 +21,15 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           python-version: '3.11'
+          enable-cache: true
 
       - name: Install dependencies
         run: uv sync --extra dev --locked
 
       - name: Lint (ruff)
-        run: uv run ruff check .
+        # --no-fix so CI reports violations instead of silently fixing them
+        # (the global `fix = true` in pyproject would otherwise mask them).
+        run: uv run ruff check --no-fix .
 
       - name: Format check (ruff)
         run: uv run ruff format --check .
